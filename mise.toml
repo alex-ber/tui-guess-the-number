@@ -1,0 +1,18 @@
+[tools]
+# --- Core Python Tooling ---
+uv = "0.11.21"
+
+# --- Editor / Language Server Tooling (Required by LSPs) ---
+node = "22"
+"npm:pyright" = "1.1.410"                           # Python LSP
+"npm:dockerfile-language-server-nodejs" = "0.15.0"  # Dockerfile LSP
+"npm:yaml-language-server" = "1.23.0"               # YAML / docker-compose LSP
+"npm:vscode-langservers-extracted" = "4.10.0"       # JSON/Markdown LSPs
+
+[env]
+
+
+# Add local binary paths to PATH so that editors (like Kate) can see them
+_.path = [
+  "./.venv/bin"
+]
