@@ -46,6 +46,6 @@ To avoid permission decoherence between the Host OS and the Docker runtime (espe
 5. If you want to read logs use (for example, you've used `docker compose up -d` command)
 
    ```bash
-   docker logs -f alexsmail-dns-fix
+   docker logs -f tui-guess-the-number
    ```
 
