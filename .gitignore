@@ -1,0 +1,136 @@
+# ----------------------------------
+# Python
+# ----------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# ----------------------------------
+# Packaging / build
+# ----------------------------------
+build/
+dist/
+sdist/
+wheels/
+*.egg-info/
+*.egg
+.eggs/
+*.whl
+*.tar.gz
+
+# ----------------------------------
+# Logs
+# ----------------------------------
+*.log
+
+# ----------------------------------
+# Environments (CRITICAL)
+# ----------------------------------
+.env
+.env.*
+.venv*
+venv*
+env/
+ENV/
+env.bak/
+virtualenv/
+node_modules/
+
+# ----------------------------------
+# Secrets (CRITICAL)
+# ----------------------------------
+.secrets/
+credentials.json
+*.pem
+*.key
+
+# ----------------------------------
+# IDE / OS noise & AI Tools
+# ----------------------------------
+.idea/
+#.vscode/
+*.kdev4
+.aider*
+.claude/
+.cursor/
+.cline/
+.DS_Store
+.AppleDouble
+Thumbs.db
+desktop.ini
+*~
+*.swp
+*.swo
+
+# ----------------------------------
+# Data artifacts & Databases
+# ----------------------------------
+*.pkl
+*.bin
+.ipynb_checkpoints/
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+
+# ----------------------------------
+# Testing / tooling
+# ----------------------------------
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# ----------------------------------
+# Local scratch
+# ----------------------------------
+prof/
+scratch/
+_scratch/
+
+# ==============================================================================
+# OPTIONAL OPT-IN SECTIONS
+# Uncomment the blocks below depending on the specific needs of your project.
+# ==============================================================================
+
+# ----------------------------------
+# Optional: Media & Audio (Whisper/AI)
+# ----------------------------------
+# *.wav
+# *.mp3
+# *.m4a
+# *.flac
+# *part*.wav
+# chunk_*.wav
+# full_transcript.txt
+# *.srt
+# *.vtt
+# *.json
+
+# ----------------------------------
+# Optional: Strict Media Exclusion
+# (Prevent large media from bloating the repo)
+# ----------------------------------
+# *.jpg
+# *.jpeg
+# *.png
+# *.gif
+# *.bmp
+# *.webp
+# *.tiff
+# *.pdf
+#
+# (Example: Always allow curated docs media)
+# !docs/**/*.png
+# !docs/**/*.jpg
+
+src/tui-guess-the-number/__init__.py

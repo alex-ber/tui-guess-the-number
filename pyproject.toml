@@ -1,0 +1,27 @@
+# [DEPENDENCY_GRAPH_ALLOCATION]: alexsmail-dns-fix
+# Strict PEP 621 compliance for target environment
+
+[project]
+name = "tui-guess-the-number"
+dynamic =["version"]
+description = "TUI for guessing the number. Extendable via MCP"
+requires-python = ">=3.14.6"
+
+# [EXTERNAL_DEPENDENCIES]:
+dependencies =[
+
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# [POINTER_ALLOCATION]: Directing the transpiler to the isolated OR
+[tool.hatch.build.targets.wheel]
+packages =["src/tui-guess-the-number"]
+
+[tool.hatch.version]
+path = "src/tui-guess-the-number/__init__.py"
+
+
+#uv pip install google-auth-oauthlib --dry-run

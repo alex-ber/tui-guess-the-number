@@ -1,0 +1,82 @@
+# ----------------------------------
+# Default: normalize to LF (Linux/Docker safe)
+# ----------------------------------
+* text=auto eol=lf
+
+# ----------------------------------
+# Windows scripts (CRLF required)
+# ----------------------------------
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# ----------------------------------
+# Shell scripts (LF only)
+# ----------------------------------
+*.sh   text eol=lf
+*.bash text eol=lf
+*.zsh  text eol=lf
+
+# ----------------------------------
+# Docker (must be LF)
+# ----------------------------------
+Dockerfile    text eol=lf
+*.dockerfile  text eol=lf
+.dockerignore text eol=lf
+
+# ----------------------------------
+# Explicit text formats
+# ----------------------------------
+*.py   text eol=lf
+*.md   text eol=lf
+*.toml text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.txt  text eol=lf
+*.ini  text eol=lf
+*.cfg  text eol=lf
+*.conf text eol=lf
+*.csv  text eol=lf
+*.svg  text eol=lf
+
+# ----------------------------------
+# Binary (never touch)
+# ----------------------------------
+# Executables & Libraries
+*.exe binary
+*.dll binary
+*.so  binary
+
+# Images
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+
+# Archives
+*.zip binary
+*.7z  binary
+*.tar binary
+*.gz  binary
+
+# Databases & Data
+*.sqlite binary
+*.db     binary
+*.pkl    binary
+*.bin    binary
+
+# Documents & Fonts
+*.pdf   binary
+*.woff  binary
+*.woff2 binary
+
+# ----------------------------------
+# Generated files (hide from PR diffs & language stats)
+# ----------------------------------
+package-lock.json linguist-generated=true
+poetry.lock       linguist-generated=true
+dist/**           linguist-generated=true
+build/**          linguist-generated=true

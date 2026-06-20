@@ -1,0 +1,28 @@
+{
+    "name": "TUI Guess the number game. Extendable.",
+    "dockerComposeFile": [
+        "../docker-compose.yml",
+        "docker-compose.dev.yml"
+    ],
+    "service": "app",
+    "workspaceFolder": "/app",
+    // 1. Install Git to avoid warnings
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {}
+    },
+    // 2. AUTOMATION: ensure .venv is fixed on every container start
+    "postStartCommand": "uv sync",
+    "customizations": {
+        "vscode": {
+            // 3. Install only open-source extensions that are 100% available in Open VSX
+            "extensions": [
+                "ms-python.python",
+                "ms-python.debugpy"
+            ],
+            "settings": {
+                // 4. Firmly bind the IDE to the correct Python
+                "python.defaultInterpreterPath": "/app/.venv/bin/python"
+            }
+        }
+    }
+}

@@ -1,0 +1,4 @@
+services:
+  app:
+    # Override the startup command so the container just "sleeps" and doesn't exit
+    command: sleep infinity
