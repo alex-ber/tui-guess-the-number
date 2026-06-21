@@ -26,4 +26,4 @@ packages =["src/tui-guess-the-number"]
 path = "src/tui-guess-the-number/__init__.py"
 
 
-#uv pip install google-auth-oauthlib --dry-run
+#uv pip install structlog --dry-run

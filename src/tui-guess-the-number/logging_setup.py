@@ -5,6 +5,44 @@ import os
 import structlog
 
 
+class StreamToLogger:
+    """
+    Fake file-like stream object that redirects writes to a logger.
+    Properly handles chunked writes and prevents data loss on exit.
+    """
+    def __init__(self, logger, log_level):
+        self.logger = logger
+        self.log_level = log_level
+        self.buf = ""  # Internal buffer for partial lines
+
+    def write(self, buf):
+        """
+        Processes incoming string buffer.
+        """
+        # splitlines(keepends=True) allows us to know if the line was finished
+        for line in buf.splitlines(keepends=True):
+            if line.endswith('\n'):
+                # Line is complete. Combine with buffer and log it.
+                full_line = self.buf + line.rstrip()
+                if full_line.strip():
+                    self.logger.log(self.log_level, "Raw stream output", raw_text=full_line)
+                self.buf = ""  # Clear the buffer
+            else:
+                # Line is incomplete (no \n). Add to buffer and wait for more.
+                self.buf += line
+
+    def flush(self):
+        """
+        Called by Python when the stream is being forced to flush (e.g., app exit).
+        Dumps whatever is left in the buffer to prevent data loss.
+        """
+        if self.buf:
+            clean_buf = self.buf.strip()
+            if clean_buf:
+                self.logger.log(self.log_level, "Raw stream output", raw_text=clean_buf)
+            self.buf = ""
+
+
 def init_conf():
     """
     Initializes production-grade logging.
@@ -13,22 +51,12 @@ def init_conf():
     env = os.getenv("ENV", "DEV").upper()
     log_level = os.getenv("LOG_LEVEL", "DEBUG").upper()
 
-    # 1. Common processors (Pipeline)
-    shared_processors = [
-        structlog.stdlib.add_log_level,
-        structlog.stdlib.add_logger_name,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S"),
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.processors.UnicodeDecoder(),
-    ]
-
 
     # 1. Common processors (Pipeline).
     # They form the log structure (add time, level, etc.)
     # This list will be applied to both our logs and logs from third-party libraries.
     shared_processors = [
+        #structlog.contextvars.merge_contextvars,    #Look on contextvars on every call
         structlog.stdlib.add_log_level,      # Adds the log level field (info, error)
         structlog.stdlib.add_logger_name,    # Adds the module name (where the logger was called)
         structlog.stdlib.PositionalArgumentsFormatter(), # Support for old '%s' formatting
@@ -90,3 +118,55 @@ def init_conf():
 
     root_logger.addHandler(handler)
     root_logger.setLevel(log_level)
+
+    log_redirector = structlog.get_logger("sys.stderr")
+    sys.stderr = StreamToLogger(log_redirector, logging.ERROR)
+
+
+# import asyncio
+# from structlog.contextvars import bind_contextvars, clear_contextvars
+#
+# log = structlog.get_logger()
+#
+# async def some_deep_function():
+#     # We didn't pass a logger here! We're calling the global one.
+#     # But it will automatically pull player_id from contextvars of the current coroutine!
+#     log.info("Doing something deep")
+#
+# async def handle_player(player_id: str):
+#     # Instead of log.bind(), we bind variables directly into the async context (contextvars)
+#     bind_contextvars(player_id=player_id)
+#
+#     log.info("Player connected")
+#     await some_deep_function()
+#
+#     # Clear the context if we plan to reuse the thread/task
+#     # (although in asyncio, the context dies on its own when the task completes)
+#     clear_contextvars()
+#
+# async def main():
+#     # Run two coroutines in parallel
+#     await asyncio.gather(
+#         handle_player("Alice"),
+#         handle_player("Bob")
+#     )
+
+
+
+# from structlog.contextvars import bind_contextvars, clear_contextvars
+# from fastapi import Request
+#
+# @app.middleware("http")
+# async def structlog_middleware(request: Request, call_next):
+#     # Clear any garbage left by previous requests on this Keep-Alive connection
+#     clear_contextvars()
+#
+#     # Bind context for the current request
+#     bind_contextvars(request_id="some-unique-id", path=request.url.path)
+#
+#     try:
+#         response = await call_next(request)
+#         return response
+#     finally:
+#         # Clean up our own context so we do not pollute the next request
+#         clear_contextvars()

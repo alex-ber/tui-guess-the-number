@@ -9,9 +9,16 @@
             "python": "${workspaceFolder}/.venv/bin/python",
             "console": "integratedTerminal",
             "justMyCode": false,
-            // "args": [
-            //     "--help"
-            // ]
+            "args": [
+                "--min",
+                "2000",
+                "--max",
+                "1023",
+                "--player-a",
+                "human",
+                "--player-b",
+                "human"
+            ]
         }
     ]
 }
