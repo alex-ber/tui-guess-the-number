@@ -8,7 +8,10 @@
             "module": "src.tui-guess-the-number.guess",
             "python": "${workspaceFolder}/.venv/bin/python",
             "console": "integratedTerminal",
-            "justMyCode": false
+            "justMyCode": false,
+            // "args": [
+            //     "--help"
+            // ]
         }
     ]
 }

@@ -40,11 +40,11 @@ services:
     #    delay: True
 
     # ---------------------------------------------------------
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "100m" # Max 100 megabytes per file
-        max-file: "10" # Keep 10 files max, delete older ones
+    # logging:
+    #   driver: "json-file"
+    #   options:
+    #     max-size: "100m" # Max 100 megabytes per file
+    #     max-file: "10" # Keep 10 files max, delete older ones
 
     # ---------------------------------------------------------
     # HARDWARE BRIDGE: Identity mapping
@@ -83,15 +83,14 @@ services:
         source: tui-guess-the-number-venv-data
         target: /app/.venv
 
-      # Optional: If your app writes local logs or state files, you can map them securely:
+      ## Optional: If your app writes local logs or state files, you can map them securely:
+      # Bind mount for logs:
+      # Makes logs generated inside the container available on the host machine
       # - ./logs:/app/logs
-      #- type: bind
-      #  source: ./logs
-      #  target: /app/logs
+      - type: bind
+        source: ./logs
+        target: /app/logs
 
-    # The CMD is already perfectly defined in your Dockerfile:
-    # CMD ["uv", "run", "python", "-m", "src.tui-guess-the-number.guess"]
-    # So we don't need to override the `command` here unless you want a specific dev-mode execution.
 
 
 
@@ -142,6 +141,10 @@ volumes:
 ##docker compose down -v --remove-orphans
 #docker compose down --remove-orphans
 #docker logs -f tui-guess-the-number
+
+## Run the app with custom arguments
+#docker compose run --rm app --min 10 --max 500 --player-a bot
+#docker compose run --rm app --help
 
 #Useful checks.
 #docker compose run --rm --entrypoint bash app

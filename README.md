@@ -49,3 +49,13 @@ To avoid permission decoherence between the Host OS and the Docker runtime (espe
    docker logs -f tui-guess-the-number
    ```
 
+6. In order to get help from the game run:
+
+    ```bash
+    docker compose run --rm app --help
+    ```
+7. In order to pass params run:
+
+    ```bash
+    docker compose run --rm app --min 10 --max 500 --player-a bot
+    ```

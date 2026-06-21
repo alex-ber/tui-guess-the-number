@@ -45,11 +45,19 @@ RUN set -ex && \
     uv sync && \
     chmod -R 777 /app/.venv && \
     chmod -R 755 /opt/python && \
-    chmod -R 777 /tmp/.uv-cache
+    chmod -R 777 /tmp/.uv-cache && \
+    mkdir -p /app/logs && \
+    chmod -R 777 /app/logs
 
 
 #[ENTRYPOINT]: Hardware Transition (Main Thread Execution)
-CMD ["uv", "run", "python", "-m", "src.tui-guess-the-number.guess"]
+# Use ENTRYPOINT for the fixed executable part
+ENTRYPOINT ["uv", "run", "python", "-m", "src.tui-guess-the-number.guess"]
+
+# Use CMD for default arguments (empty by default)
+CMD ["--min", "1", "--max", "1023", "--player-a", "human", "--player-b", "human"]
+
+#CMD ["uv", "run", "python", "-m", "src.tui-guess-the-number.guess"]
 #CMD ["sleep", "infinity"]
 
 
