@@ -119,6 +119,8 @@ def init_conf():
     root_logger.addHandler(handler)
     root_logger.setLevel(log_level)
 
+    logging.captureWarnings(True)
+
     log_redirector = structlog.get_logger("sys.stderr")
     sys.stderr = StreamToLogger(log_redirector, logging.ERROR)
 
