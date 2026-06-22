@@ -3,6 +3,7 @@ from logging.handlers import TimedRotatingFileHandler
 import sys
 import os
 import structlog
+from .literar_coonverter import parse_str
 
 
 class StreamToLogger:
@@ -43,20 +44,21 @@ class StreamToLogger:
             self.buf = ""
 
 
-def init_conf():
+def initConf():
     """
     Initializes production-grade logging.
     Redirects all logs to a rotating file.
     """
-    env = os.getenv("ENV", "DEV").upper()
-    log_level = os.getenv("LOG_LEVEL", "DEBUG").upper()
+    render_type = parse_str(os.getenv("LOG_RENDER_TYPE", "").upper())
+    log_level = parse_str(os.getenv("LOG_LEVEL", "DEBUG").upper())
+    log_console_color = parse_str(os.getenv("LOG_CONSOLE_COLOR", "FALSE").upper())
 
 
     # 1. Common processors (Pipeline).
     # They form the log structure (add time, level, etc.)
     # This list will be applied to both our logs and logs from third-party libraries.
     shared_processors = [
-        #structlog.contextvars.merge_contextvars,    #Look on contextvars on every call
+        structlog.contextvars.merge_contextvars,    #Look on contextvars on every call
         structlog.stdlib.add_log_level,      # Adds the log level field (info, error)
         structlog.stdlib.add_logger_name,    # Adds the module name (where the logger was called)
         structlog.stdlib.PositionalArgumentsFormatter(), # Support for old '%s' formatting
@@ -68,12 +70,12 @@ def init_conf():
     ]
 
     # 2. Choose the final renderer (the last link in the pipeline)
-    if env == "PROD":
+    if render_type == "JSON":
         # In Docker/Prod output strict JSON
         renderer = structlog.processors.JSONRenderer()
     else:
         # In local development - console output
-        renderer = structlog.dev.ConsoleRenderer(colors=False)
+        renderer = structlog.dev.ConsoleRenderer(colors=log_console_color)
 
     # 3. Configure structlog itself
     structlog.configure(
