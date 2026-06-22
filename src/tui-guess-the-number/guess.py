@@ -35,27 +35,15 @@ typer.rich_utils._get_rich_console = patched_get_rich_console
 
 import typer
 from typer import Typer
-
 from typing import Annotated
-
-from .logging_setup import initConf as structLogInitConf
-
 from structlog.contextvars import bind_contextvars, clear_contextvars
+from .logging_setup import initConf as structLogInitConf
+from .engine import Engine
+
+
 
 log = None
 
-# def validate_param(param_value, param_name):
-#     """
-#      Validates that a required parameter is not None.
-
-#      param_value (any): The value of the parameter to be validated.
-#      param_name (str): The name of the parameter to be used in the error message.
-
-#      Raises:
-#      ValueError: If the parameter value is None, indicating that the required parameter is missing.
-#      """
-#     if param_value is None:
-#         raise ValueError(f"Expected {param_name} param not found")
 
 def _join_param_hints(*param_hints):
     assert param_hints
@@ -118,8 +106,8 @@ def run_game(
     clear_contextvars()
     try:
         bind_contextvars(
-            min_val=min_val,
-            max_val=max_val)
+            minVal=min_val,
+            maxVal=max_val)
 
         log.info("run_game()")
 
@@ -141,28 +129,9 @@ def run_game(
                 max_param
             )
 
+        runner: Engine = Engine()
+        runner.play_loop(min_val, max_val, player_a, player_b)
 
-
-        log.info(
-            "Game starting",
-
-            player_a=player_a,
-            player_b=player_b
-        )
-
-        # Calculate the number of attempts using the correct formula
-        max_attempts = math.floor(math.log2(max_val - min_val + 1)) + 1
-
-        bind_contextvars(max_attempts=max_attempts)
-
-        typer.secho(f"🎮 Game is starting!", fg=typer.colors.GREEN, bold=True)
-        typer.echo(f"Range: from {min_val} to {max_val}")
-        typer.echo(f"Maximum attempts: {max_attempts}")
-        typer.echo(f"Player A: {player_a} | Player B: {player_b}\n")
-
-        # player_a_instance = load_player(player_a)
-        # player_b_instance = load_player(player_b)
-        # start_game_loop(...)
     finally:
         clear_contextvars()
 
