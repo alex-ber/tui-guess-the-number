@@ -60,5 +60,5 @@ class Engine:
         typer.secho(f"🎮 Game is starting!", fg=typer.colors.GREEN, bold=True)
         typer.echo(f"Range: from {minVal} to {maxVal}")
         typer.echo(f"Maximum attempts: {maxAttempts}")
-        typer.echo(f"Player A: {player_a_id} | Player B: {player_b_id}\n")
+        typer.echo(f"Player A: {playerAId} | Player B: {playerBId}\n")
 
