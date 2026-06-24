@@ -52,6 +52,7 @@ def initConf():
     render_type = parse_str(os.getenv("LOG_RENDER_TYPE", "").upper())
     log_level = parse_str(os.getenv("LOG_LEVEL", "DEBUG").upper())
     log_console_color = parse_str(os.getenv("LOG_CONSOLE_COLOR", "FALSE").upper())
+    log_stdout = parse_str(os.getenv("LOG_STDOUT", "TRUE").upper())
 
 
     # 1. Common processors (Pipeline).
@@ -104,19 +105,21 @@ def initConf():
     os.makedirs("logs", exist_ok=True)
 
     #For standard logging using stdout
-    # handler = logging.StreamHandler(sys.stdout)
-    # handler.setFormatter(formatter)
-
-    # Configure rotating file handler
-    # Rotates at midnight, keeps 10 backups, delays file creation until first log
-    handler = TimedRotatingFileHandler(
-        filename="logs/tui-guess-the-number.log",
-        when="midnight",
-        backupCount=10,
-        delay=True,
-        encoding="utf-8"
-    )
-    handler.setFormatter(formatter)
+    handler = None
+    if log_stdout:
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(formatter)
+    else:
+        # Configure rotating file handler
+        # Rotates at midnight, keeps 10 backups, delays file creation until first log
+        handler = TimedRotatingFileHandler(
+            filename="logs/tui-guess-the-number.log",
+            when="midnight",
+            backupCount=10,
+            delay=True,
+            encoding="utf-8"
+        )
+        handler.setFormatter(formatter)
 
     root_logger.addHandler(handler)
     root_logger.setLevel(log_level)
