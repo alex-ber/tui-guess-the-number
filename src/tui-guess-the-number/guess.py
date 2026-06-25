@@ -1,8 +1,3 @@
-import functools
-from typing import get_type_hints
-import math
-from collections import deque
-
 #MONKEY_PATHING:
 
 import inspect
@@ -42,15 +37,10 @@ from .engine import Engine
 
 
 
-log = None
-
-
+log = structlog.get_logger(__name__)
 
 def _configure_logging():
     structLogInitConf()
-    global log
-    # Get the logger. Important: we get it from structlog, not from logging!
-    log = structlog.get_logger(__name__)
     logging.getLogger("boto3").setLevel(logging.WARNING)
 
 def run_game(
