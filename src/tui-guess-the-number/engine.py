@@ -145,10 +145,10 @@ class Engine:
                     reason = "PlayerB correctly guessed the number"
                     feedback: str | None = player_a.on_finished(attempts=i, is_win=False, reason=reason)
                     if feedback:
-                        typer.echo(feedback)
+                        typer.secho(feedback, fg=typer.colors.GREEN, bold=True)
                     feedback = player_b.on_finished(attempts=i, is_win=True, reason=reason)
                     if feedback:
-                        typer.echo(feedback)
+                        typer.secho(feedback, fg=typer.colors.GREEN, bold=True)
                     return  # Exit the game
                 case _:
                     raise ValueError(f"Unexpected result: {result}")
@@ -170,8 +170,12 @@ class Engine:
                 reason = (f"Player A is caught cheating. On attempt {lowest_on_attempt}, he said that the guessed number is higher than {lowest}. "
                           f"On the other hand, on attempt {highest_on_attempt}, he said that the guessed number is lower than {highest}. "
                           f"But this is an impossible situation.")
-                player_a.on_finished(attempts=i, is_win=False, reason=reason)
-                player_b.on_finished(attempts=i, is_win=True, reason=reason)
+                feedback = player_a.on_finished(attempts=i, is_win=False, reason=reason)
+                if feedback:
+                    typer.secho(feedback, fg=typer.colors.RED, bold=True)
+                feedback = player_b.on_finished(attempts=i, is_win=True, reason=reason)
+                if feedback:
+                    typer.secho(feedback, fg=typer.colors.RED, bold=True)
                 return # Exit the game
 
 
@@ -181,7 +185,7 @@ class Engine:
         reason = "Max number of attempts is exhausted"
         feedback:str| None = player_a.on_finished(attempts=max_attempts, is_win=True, reason=reason)
         if feedback:
-            typer.echo(feedback)
+            typer.secho(feedback, fg=typer.colors.BRIGHT_BLACK, bold=False)
         feedback = player_b.on_finished(attempts=max_attempts, is_win=False, reason=reason)
         if feedback:
-            typer.echo(feedback)
+            typer.secho(feedback, fg=typer.colors.BRIGHT_BLACK, bold=False)
