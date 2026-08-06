@@ -1,4 +1,4 @@
-FROM alexberkovich/ubuntu2404-snapshot:2025-06-16
+FROM alexberkovich/ubuntu2404-snapshot:2026-08-06
 
 
 
@@ -15,8 +15,10 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /app
 
+
 #[HARDWARE_BRIDGE]: Injecting UV Compiler (AOT Dependency Graph Resolver)
-COPY --from=ghcr.io/astral-sh/uv@sha256:ff07b86af50d4d9391d9daf4ff89ce427bc544f9aae87057e69a1cc0aa369946 /uv /uvx /bin/
+#https://github.com/astral-sh/uv/pkgs/container/uv/1073952945?tag=0.11.33-python3.12-trixie
+COPY --from=ghcr.io/astral-sh/uv:0.11.33@sha256:77280f2f771df71f90786c314fe1bbc1e023feac652969bbf139c280babf2eb7 /uv /uvx /bin/
 
 #[RUNTIME_ENVIRONMENT]: Deterministic APT Projection & Root Python Allocation
 RUN set -ex && \
@@ -34,7 +36,7 @@ COPY pyproject.toml uv.lock ./
 # Bypasses hatchling early parse exception, isolating dependency layer from source layer jitter.
 RUN set -ex && \
     mkdir -p src/tui-guess-the-number && \
-    echo '__version__ = "0.0.1"' > src/tui-guess-the-number/__init__.py && \
+    echo '__version__ = "0.0.2"' > src/tui-guess-the-number/__init__.py && \
     uv sync --no-install-project
 
 #[AST_COPY]: Mount Root Logic
@@ -68,10 +70,10 @@ CMD ["--min", "1", "--max", "1023", "--player-a", "human", "--player-b", "human"
 # docker run --rm -v "$(pwd):/app" -w /app ghcr.io/astral-sh/uv:python3.14-bookworm-slim uv lock
 
 #docker build --no-cache --progress=plain -t tui-guess-the-number-i .
-#docker run -it -p 8080:8080 -v "$(pwd)/.secrets:/app/.secrets" tui-guess-the-number-i
+#docker run -it tui-guess-the-number-i
 # The --entrypoint /bin/bash flag overrides the default script execution.
 # You get a Linux command line INSIDE the container.
-#docker run -it -p 8080:8080 --entrypoint /bin/bash -v "$(pwd)/.secrets:/app/.secrets" tui-guess-the-number-i
+#docker run -it --entrypoint /bin/bash tui-guess-the-number-i
 
 # ---[PyPI PUBLISHING PIPELINE] ---
 # uv build
@@ -92,9 +94,9 @@ CMD ["--min", "1", "--max", "1023", "--player-a", "human", "--player-b", "human"
 
 
 
-#docker tag tui-guess-the-number-i alexberkovich/tui-guess-the-number:0.0.1
+#docker tag tui-guess-the-number-i alexberkovich/tui-guess-the-number:0.0.2
 #docker tag tui-guess-the-number-i alexberkovich/tui-guess-the-number:latest
-#docker push alexberkovich/tui-guess-the-number:0.0.1
+#docker push alexberkovich/tui-guess-the-number:0.0.2
 #docker push alexberkovich/tui-guess-the-number:latest
 
 
