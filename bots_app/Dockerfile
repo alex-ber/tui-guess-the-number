@@ -51,6 +51,7 @@ RUN set -ex && \
     mkdir -p /app/logs && \
     chmod -R 777 /app/logs
 
+EXPOSE 8081
 
 # #It is the command that will start and run the FastAPI application container
 CMD ["uv", "run", "python", "-m", "src.tui-guess-the-number-bots.main"]
