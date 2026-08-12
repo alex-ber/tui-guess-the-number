@@ -1,6 +1,3 @@
-# [DEPENDENCY_GRAPH_ALLOCATION]: alexsmail-dns-fix
-# Strict PEP 621 compliance for target environment
-
 [project]
 name = "tui-guess-the-number"
 dynamic =["version"]

@@ -1,0 +1,103 @@
+# ----------------------------------
+# Git / CI / Local Tooling
+# ----------------------------------
+.git
+.gitignore
+.github
+.devcontainer/
+*docker-compose*
+Makefile
+
+# ----------------------------------
+# Python artifacts
+# ----------------------------------
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# ----------------------------------
+# Environments (must NOT leak)
+# ----------------------------------
+.env
+.env.*
+.venv*
+venv*
+env/
+ENV/
+virtualenv/
+**/node_modules/
+
+# ----------------------------------
+# Secrets (CRITICAL)
+# ----------------------------------
+.secrets/
+credentials.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+
+# ----------------------------------
+# IDE / OS / AI Tools
+# ----------------------------------
+.idea/
+*.kdev4
+.vscode/
+.zed/
+.fleet/
+.cursor/
+.cursorrules
+.claude/
+.cline/
+.DS_Store
+Thumbs.db
+ehthumbs.db
+*~
+*.swp
+*.swo
+
+# ----------------------------------
+# Build artifacts
+# ----------------------------------
+build/
+dist/
+*.egg-info/
+*.egg
+*.whl
+*.tar.gz
+
+# ----------------------------------
+# Test artifacts & Tooling Caches
+# ----------------------------------
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.pre-commit-config.yaml
+.pre-commit-cache/
+
+# ----------------------------------
+# Runtime / data
+# ----------------------------------
+*.log
+*.sqlite
+*.sqlite3
+*.db
+.ipynb_checkpoints/
+
+# ----------------------------------
+# Optional: exclude docs if not needed in image
+# ----------------------------------
+docs/
+
+# ----------------------------------
+# Keep Dockerfile
+# ----------------------------------
+!Dockerfile
+
+src/tui-guess-the-number/__init__.py
