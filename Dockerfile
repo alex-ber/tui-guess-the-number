@@ -1,4 +1,4 @@
-FROM alexberkovich/ubuntu2404-snapshot:2026-08-06
+FROM alexberkovich/ubuntu2404-snapshot:2026-08-12
 
 
 
@@ -36,7 +36,7 @@ COPY pyproject.toml uv.lock ./
 # Bypasses hatchling early parse exception, isolating dependency layer from source layer jitter.
 RUN set -ex && \
     mkdir -p src/tui-guess-the-number && \
-    echo '__version__ = "0.0.2"' > src/tui-guess-the-number/__init__.py && \
+    echo '__version__ = "0.0.4"' > src/tui-guess-the-number/__init__.py && \
     uv sync --no-install-project
 
 #[AST_COPY]: Mount Root Logic
@@ -54,12 +54,12 @@ RUN set -ex && \
 
 #[ENTRYPOINT]: Hardware Transition (Main Thread Execution)
 # Use ENTRYPOINT for the fixed executable part
-ENTRYPOINT ["uv", "run", "python", "-m", "src.tui-guess-the-number.guess"]
+ENTRYPOINT ["uv", "run", "python", "-m", "tui-guess-the-number.guess"]
 
 # Use CMD for default arguments (empty by default)
 CMD ["--min", "1", "--max", "1023", "--player-a", "human", "--player-b", "human"]
 
-#CMD ["uv", "run", "python", "-m", "src.tui-guess-the-number.guess"]
+#CMD ["uv", "run", "python", "-m", "tui-guess-the-number.guess"]
 #CMD ["sleep", "infinity"]
 
 
@@ -89,14 +89,14 @@ CMD ["--min", "1", "--max", "1023", "--player-a", "human", "--player-b", "human"
 #uv cache prune #outdated
 #uv cache clean numpy #If you suspect a specific package is corrupted or you wa>
 #uv sync
-#uv run python -m src.the_number.guess
+#uv run python -m tui-guess-the-number.guess
 
 
 
 
-#docker tag tui-guess-the-number-i alexberkovich/tui-guess-the-number:0.0.2
+#docker tag tui-guess-the-number-i alexberkovich/tui-guess-the-number:0.0.4
 #docker tag tui-guess-the-number-i alexberkovich/tui-guess-the-number:latest
-#docker push alexberkovich/tui-guess-the-number:0.0.2
+#docker push alexberkovich/tui-guess-the-number:0.0.4
 #docker push alexberkovich/tui-guess-the-number:latest
 
 
