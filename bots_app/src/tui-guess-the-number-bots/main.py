@@ -110,7 +110,7 @@ app = FastAPI(lifespan=lifespan, debug=True, title="Guess The Number - Docker Bo
 initFastAPI(app)
 
 
-@app.get("/")
+@app.get("/health")
 async def health_check():
     return {"status": "healthy"}
 
