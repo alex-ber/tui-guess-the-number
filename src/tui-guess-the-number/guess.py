@@ -27,6 +27,9 @@ def patched_get_rich_console(*args, **kwargs):
 typer.rich_utils._get_rich_console = patched_get_rich_console
 
 import logging
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 import structlog
 import typer
 from typer import Typer
@@ -36,12 +39,21 @@ from .logging_setup import initConf as structLogInitConf
 from .engine import Engine
 
 
+def _configure_logging():
+    cwd = Path.cwd()
+    env_path = cwd / ".env"
+    override = os.getenv("IS_ENV_OVERRIDE", "FALSE").upper() == "TRUE"
+    load_dotenv(dotenv_path=env_path, override=override)
+
+    structLogInitConf()
+    logging.getLogger("boto3").setLevel(logging.WARNING)
+
+
+_configure_logging()
 
 log = structlog.get_logger(__name__)
 
-def _configure_logging():
-    structLogInitConf()
-    logging.getLogger("boto3").setLevel(logging.WARNING)
+
 
 def run_game(
     ctx: typer.Context,

@@ -70,7 +70,7 @@ CMD ["--min", "1", "--max", "1023", "--player-a", "human", "--player-b", "human"
 # docker run --rm -v "$(pwd):/app" -w /app ghcr.io/astral-sh/uv:python3.14-bookworm-slim uv lock
 
 #docker build --no-cache --progress=plain -t tui-guess-the-number-i .
-#docker run -it tui-guess-the-number-i
+#docker run -e IS_ENV_OVERRIDE=True --env-file .env -it tui-guess-the-number-i
 # The --entrypoint /bin/bash flag overrides the default script execution.
 # You get a Linux command line INSIDE the container.
 #docker run -it --entrypoint /bin/bash tui-guess-the-number-i

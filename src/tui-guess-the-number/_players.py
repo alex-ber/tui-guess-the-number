@@ -3,6 +3,9 @@ import structlog
 from rich.prompt import IntPrompt, PromptBase
 from enum import StrEnum
 
+import msgpack
+from fastapi import FastAPI, HTTPException, Request
+
 
 class GuessFeedback(StrEnum):
     TOO_LOW = "too low"

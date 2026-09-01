@@ -63,7 +63,7 @@ CMD ["uv", "run", "python", "-m", "tui-guess-the-number-bots.main"]
 #mise install
 
 #docker build --no-cache --progress=plain -t tui-guess-the-number-bots-i .
-#docker run -it tui-guess-the-number-bots-i
+#docker run -e IS_ENV_OVERRIDE=True --env-file .env -it tui-guess-the-number-bots-i
 # The --entrypoint /bin/bash flag overrides the default script execution.
 # You get a Linux command line INSIDE the container.
 #docker run -it --entrypoint /bin/bash tui-guess-the-number-bots-i
