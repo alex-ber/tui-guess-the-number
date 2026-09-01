@@ -45,8 +45,10 @@ class StructlogASGIMiddleware:
             return
 
         # --- Start processing the HTTP request ---
+        # Clear any garbage left by previous requests on this Keep-Alive connection
         clear_contextvars()
 
+        # Bind context for the current request
         # In the ASGI scope, the path can be in bytes or a string (depending on the server),
         # but usually it is available via scope.get("path", "")
         bind_contextvars(request_id="some-unique-id", path=scope.get("path", ""))
@@ -56,21 +58,8 @@ class StructlogASGIMiddleware:
             # We do NOT intercept send/receive, so BackgroundTasks and Streaming work perfectly!
             await self.app(scope, receive, send)
         finally:
+            # Clean up our own context so we do not pollute the next request
             clear_contextvars()
-
-async def structlog_middleware(request: Request, call_next):
-    # Clear any garbage left by previous requests on this Keep-Alive connection
-    clear_contextvars()
-
-    # Bind context for the current request
-    bind_contextvars(request_id="some-unique-id", path=request.url.path)
-
-    try:
-        response = await call_next(request)
-        return response
-    finally:
-        # Clean up our own context so we do not pollute the next request
-        clear_contextvars()
 
 
 
