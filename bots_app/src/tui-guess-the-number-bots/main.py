@@ -34,7 +34,29 @@ _configure_logging()
 
 log = structlog.get_logger(__name__)
 
+class StructlogASGIMiddleware:
+    def __init__(self, app):
+        self.app = app
 
+    async def __call__(self, scope: dict, receive, send):
+        # We are only interested in HTTP requests (ignore WebSocket and Lifespan)
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        # --- Start processing the HTTP request ---
+        clear_contextvars()
+
+        # In the ASGI scope, the path can be in bytes or a string (depending on the server),
+        # but usually it is available via scope.get("path", "")
+        bind_contextvars(request_id="some-unique-id", path=scope.get("path", ""))
+
+        try:
+            # Pass control further down the middleware chain.
+            # We do NOT intercept send/receive, so BackgroundTasks and Streaming work perfectly!
+            await self.app(scope, receive, send)
+        finally:
+            clear_contextvars()
 
 async def structlog_middleware(request: Request, call_next):
     # Clear any garbage left by previous requests on this Keep-Alive connection
@@ -199,7 +221,8 @@ def initFastAPI(app: FastAPI):
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    app.add_middleware(BaseHTTPMiddleware, dispatch=structlog_middleware)
+    app.add_middleware(StructlogASGIMiddleware)
+    #app.add_middleware(BaseHTTPMiddleware, dispatch=structlog_middleware)
     #app.add_middleware(BaseHTTPMiddleware, dispatch=auth_dispatch)
     #app.add_middleware(BaseHTTPMiddleware, dispatch=api_key_dispatch)
 
