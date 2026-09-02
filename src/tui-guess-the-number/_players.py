@@ -31,10 +31,7 @@ log = structlog.get_logger(__name__)
 
 
 class HumanPlayerA:
-    def prepare_to_play(self, min_val:int, max_val:int, max_attempts: int) -> None:
-        log.info("prepare_to_play()")
-
-    def is_guess_number(self, number:int) -> GuessFeedback:
+    def is_guess_number(self, min_val:int, max_val:int, max_attempts: int, number:int) -> GuessFeedback:
         log.info("is_guess_number()", number = number)
         guess_result = GuessFeedbackPrompt.ask(f"Does it {number}?")
         return guess_result
@@ -42,8 +39,8 @@ class HumanPlayerA:
     def get_identification_info(self) -> str:
         return type(self).__name__
 
-    def on_finished(self, attempts:int, is_win:bool, reason:str) -> str|None:
-        log.info("on_finished()")
+    def on_finished(self, min_val:int, max_val:int, max_attempts: int, attempts:int, is_win:bool, reason:str) -> str|None:
+        log.info("on_finished()", is_win = is_win, reason = reason)
         message = ""
 
         if is_win:
@@ -56,13 +53,8 @@ class HumanPlayerA:
 
 
 class HumanPlayerB:
-    def prepare_to_play(self, min_val: int, max_val: int, max_attempts: int) -> None:
-        log.info("prepare_to_play()")
-        self.lowest = min_val
-        self.highest = max_val
-        self.max_attempts = max_attempts
 
-    def make_your_guess(self, attempt:int) -> int:
+    def make_your_guess(self, min_val:int, max_val:int, max_attempts: int, attempt:int) -> int:
         log.info("make_your_guess()")
         number = IntPrompt.ask(f"Make your guess.")
         return number
@@ -70,13 +62,13 @@ class HumanPlayerB:
     def get_identification_info(self) -> str:
         return type(self).__name__
 
-    def on_finished(self, attempts:int, is_win:bool, reason:str) -> str|None:
-        log.info("on_finished()")
+    def on_finished(self, min_val:int, max_val:int, max_attempts: int, attempts:int, is_win:bool, reason:str) -> str|None:
+        log.info("on_finished()", message = is_win, reason = reason)
         message = ""
         if is_win:
-            message = f"Hurray! It tooks me only {attempts} attempts out of {self.max_attempts} to guess it right! {reason}"
+            message = f"Hurray! It tooks me only {attempts} attempts out of {max_attempts} to guess it right! {reason}"
         else:
-            message = f"Attempts {self.max_attempts} wasn't enough! {reason}"
+            message = f"Attempts {max_attempts} wasn't enough! {reason}"
 
 
         return message

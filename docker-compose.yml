@@ -68,7 +68,7 @@ services:
       - PYTHONDONTWRITEBYTECODE=1
       # Tell UV to use /tmp for caching, as it's writable by any user
       - UV_CACHE_DIR=/tmp/.uv-cache
-      # In Production OS level env wine over local .env
+      # In Production OS level env win over local .env
       - IS_ENV_OVERRIDE=False
 
     volumes:

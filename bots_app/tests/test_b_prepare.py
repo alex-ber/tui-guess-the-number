@@ -2,7 +2,7 @@ import httpx
 
 
 def run_test():
-    url = "http://127.0.0.1:8081/bots/smart_bot/prepare"
+    url = "http://127.0.0.1:8081/bots/b/smart_bot/prepare"
     print(f"Sending POST request to {url}...")
 
     # --- TEST 1: EMPTY BODY (Should return 422) ---

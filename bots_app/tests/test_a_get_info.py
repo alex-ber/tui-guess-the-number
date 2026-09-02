@@ -2,7 +2,7 @@ import httpx
 
 
 def run_test():
-    url = "http://127.0.0.1:8081/bots/smart_bot/info"
+    url = "http://127.0.0.1:8081/bots/a/smart_bot/info"
     print(f"Sending GET request to {url}...")
 
     response = httpx.get(url)

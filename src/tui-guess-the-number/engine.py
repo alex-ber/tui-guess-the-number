@@ -104,8 +104,8 @@ class Engine:
 
         bind_contextvars(max_attempts=max_attempts)
 
-        player_a: PlayerA = create_player_a(min_val, max_val, max_attempts, player_a_id)
-        player_b: PlayerB = create_player_b(min_val, max_val, max_attempts, player_b_id)
+        player_a: PlayerA = create_player_a(player_a_id)
+        player_b: PlayerB = create_player_b(player_b_id)
 
         log.info(
             "Game starting",
@@ -130,9 +130,9 @@ class Engine:
 
 
             typer.echo(f"Player B: Attempt {i} of {max_attempts}. Please make your guesses")
-            num = player_b.make_your_guess(i)
+            num = player_b.make_your_guess(min_val, max_val, max_attempts, i)
             typer.echo(f"Player A: please check if the guess is correct.")
-            result: GuessFeedback = player_a.is_guess_number(num)
+            result: GuessFeedback = player_a.is_guess_number(min_val, max_val, max_attempts, num)
             match result:
                 case GuessFeedback.TOO_LOW:
                     lowest_d['number'] = num
@@ -143,10 +143,10 @@ class Engine:
                 case GuessFeedback.EXACT:
                     typer.secho(f"Congratulations for player B! You wins in attempt {i} out of {max_attempts}", fg=typer.colors.GREEN, bold=True)
                     reason = "PlayerB correctly guessed the number"
-                    feedback: str | None = player_a.on_finished(attempts=i, is_win=False, reason=reason)
+                    feedback: str | None = player_a.on_finished(min_val, max_val, max_attempts, attempts=i, is_win=False, reason=reason)
                     if feedback:
                         typer.secho(feedback, fg=typer.colors.GREEN, bold=True)
-                    feedback = player_b.on_finished(attempts=i, is_win=True, reason=reason)
+                    feedback = player_b.on_finished(min_val, max_val, max_attempts, attempts=i, is_win=True, reason=reason)
                     if feedback:
                         typer.secho(feedback, fg=typer.colors.GREEN, bold=True)
                     return  # Exit the game
@@ -170,10 +170,10 @@ class Engine:
                 reason = (f"Player A is caught cheating. On attempt {lowest_on_attempt}, he said that the guessed number is higher than {lowest}. "
                           f"On the other hand, on attempt {highest_on_attempt}, he said that the guessed number is lower than {highest}. "
                           f"But this is an impossible situation.")
-                feedback = player_a.on_finished(attempts=i, is_win=False, reason=reason)
+                feedback = player_a.on_finished(min_val, max_val, max_attempts, attempts=i, is_win=False, reason=reason)
                 if feedback:
                     typer.secho(feedback, fg=typer.colors.RED, bold=True)
-                feedback = player_b.on_finished(attempts=i, is_win=True, reason=reason)
+                feedback = player_b.on_finished(min_val, max_val, max_attempts, attempts=i, is_win=True, reason=reason)
                 if feedback:
                     typer.secho(feedback, fg=typer.colors.RED, bold=True)
                 return # Exit the game
@@ -183,9 +183,9 @@ class Engine:
         log.info("All attempts are exhausted", max_attempts=max_attempts)
 
         reason = "Max number of attempts is exhausted"
-        feedback:str| None = player_a.on_finished(attempts=max_attempts, is_win=True, reason=reason)
+        feedback:str| None = player_a.on_finished(min_val, max_val, max_attempts, attempts=max_attempts, is_win=True, reason=reason)
         if feedback:
             typer.secho(feedback, fg=typer.colors.BRIGHT_BLACK, bold=False)
-        feedback = player_b.on_finished(attempts=max_attempts, is_win=False, reason=reason)
+        feedback = player_b.on_finished(min_val, max_val, max_attempts, attempts=max_attempts, is_win=False, reason=reason)
         if feedback:
             typer.secho(feedback, fg=typer.colors.BRIGHT_BLACK, bold=False)

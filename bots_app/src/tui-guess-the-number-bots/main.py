@@ -2,14 +2,14 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import structlog
+
 from structlog.contextvars import clear_contextvars, bind_contextvars
-from collections import deque
 from alexber.utils.structlog_setup import initConf as structLogInitConf
 from alexber.utils import thread_locals
-from alexber.utils.literar_coonverter import parse_str
+from alexber.utils.literar_converter import parse_str
 
 from contextlib import asynccontextmanager
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp, Receive, Send, Scope
 
 import uvicorn
 from fastapi import FastAPI, Body, Request, HTTPException
@@ -17,9 +17,9 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 import msgspec
-from typing import Annotated
+from typing import Annotated, Any
 
-from .players import BinarySearchBot
+from .players import BinarySearchBot, SmartGesserBot, bot_a_identification_info, bot_b_identification_info, bot_a_on_finished, bot_b_on_finished
 
 def _configure_logging():
     cwd = Path.cwd()
@@ -35,10 +35,10 @@ _configure_logging()
 log = structlog.get_logger(__name__)
 
 class StructlogASGIMiddleware:
-    def __init__(self, app):
+    def __init__(self, app: ASGIApp):
         self.app = app
 
-    async def __call__(self, scope: dict, receive, send):
+    async def __call__(self, scope: dict, receive: Receive, send: Send) -> None:
         # We are only interested in HTTP requests (ignore WebSocket and Lifespan)
         if scope["type"] != "http":
             await self.app(scope, receive, send)
@@ -62,6 +62,29 @@ class StructlogASGIMiddleware:
             clear_contextvars()
 
 
+class BaseExceptionGroupASGIMiddleware:
+    """
+    Catch-all for BaseExceptionGroup that bypasses Starlette's default ExceptionMiddleware.
+    Must be placed inside the logging middleware to preserve log contexts!
+    """
+
+    def __init__(self, app: ASGIApp):
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        try:
+            await self.app(scope, receive, send)
+        except BaseExceptionGroup as exc:
+            # We catch it, reconstruct the request and pass it to our robust handler
+            request = Request(scope, receive)
+            response = await exception_group_handler(request, exc)
+
+            # Send the generated JSONResponse through the ASGI interface
+            await response(scope, receive, send)
 
 async def general_exception_handler(request: Request, exc: Exception):
     """
@@ -97,7 +120,7 @@ async def general_exception_handler(request: Request, exc: Exception):
     )
 
 
-def _flatten_exceptions(exc: BaseException) -> list[Exception]:
+def _flatten_exceptions(exc: Exception) -> list[Exception]:
     """
     Extracts all standard Exception instances in a SINGLE PASS using DFS.
 
@@ -125,9 +148,9 @@ def _flatten_exceptions(exc: BaseException) -> list[Exception]:
     return flat
 
 
-async def exception_group_handler(request: Request, exc: ExceptionGroup):
+async def exception_group_handler(request: Request, exc: BaseExceptionGroup):
     """
-    Handles ExceptionGroup (Python 3.11+), unwrapping exceptions
+    Handles BaseExceptionGroup (Python 3.11+), unwrapping exceptions
     and preserving the system signals (like CancelledError).
     """
 
@@ -138,6 +161,7 @@ async def exception_group_handler(request: Request, exc: ExceptionGroup):
     responses: list[JSONResponse] = []
 
     # 2. Process application exceptions safely
+    flat_exceptions = []
     if matched:
         # Single pass flattening
         flat_exceptions = _flatten_exceptions(matched)
@@ -148,16 +172,16 @@ async def exception_group_handler(request: Request, exc: ExceptionGroup):
             exc_info=matched
         )
 
-        for sub_exc in flat_exceptions:
-            resp = await general_exception_handler(request, sub_exc)
-            responses.append(resp)
-
     # 3. CRITICAL: Re-raise system exceptions immediately.
     # We do this AFTER processing app errors. If [ValueError, CancelledError]
     # occurred, ValueError is logged above, and CancelledError is raised here
     # so Uvicorn/AnyIO can correctly abort the request without returning JSON.
     if unmatched:
         raise unmatched
+
+    for sub_exc in flat_exceptions:
+        resp = await general_exception_handler(request, sub_exc)
+        responses.append(resp)
 
     # 4. Failsafe for empty groups
     if not responses:
@@ -203,21 +227,44 @@ async def exception_group_handler(request: Request, exc: ExceptionGroup):
 
 
 def initFastAPI(app: FastAPI):
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    # =====================================================================
+    # MIDDLEWARE REGISTRATION
+    # WARNING: FastAPI adds middleware using list.insert(0).
+    # This means the LAST middleware added becomes the OUTERMOST layer
+    # (it is the first to receive the request and the last to send response).
+    #
+    # Expected execution order (Outside -> Inside):
+    # 1. CORS
+    # 2. Structlog (sets contextvars)
+    # 3. BaseExceptionGroup (catches errors, uses contextvars for logging)
+    # =====================================================================
+
+    # 3. INNERMOST user middleware (Added first)
+    app.add_middleware(BaseExceptionGroupASGIMiddleware)
+
+    # 2. MIDDLE user middleware (Added second)
+    # Wraps BaseExceptionGroup, meaning contextvars are active when exceptions are caught.
     app.add_middleware(StructlogASGIMiddleware)
-    #app.add_middleware(BaseHTTPMiddleware, dispatch=structlog_middleware)
-    #app.add_middleware(BaseHTTPMiddleware, dispatch=auth_dispatch)
-    #app.add_middleware(BaseHTTPMiddleware, dispatch=api_key_dispatch)
+    # #app.add_middleware(BaseHTTPMiddleware, dispatch=structlog_middleware)
+    # #app.add_middleware(BaseHTTPMiddleware, dispatch=auth_dispatch)
+    # #app.add_middleware(BaseHTTPMiddleware, dispatch=api_key_dispatch)
 
+
+    # 1. OUTERMOST user middleware (Added last)
+    # Ensures CORS headers are appended even if our exception handlers return a 500 response.
+    app.add_middleware(
+        CORSMiddleware, # type: ignore[arg-type]
+        allow_origins=["*"], # type: ignore[arg-type]
+        allow_credentials=True, # type: ignore[arg-type]
+        allow_methods=["*"], # type: ignore[arg-type]
+        allow_headers=["*"], # type: ignore[arg-type]
+    )
+
+    # =====================================================================
+    # EXCEPTION HANDLERS REGISTRATION
+    # =====================================================================
     app.add_exception_handler(Exception, general_exception_handler)
-    app.add_exception_handler(ExceptionGroup, exception_group_handler)
-
+    app.add_exception_handler(ExceptionGroup, exception_group_handler) # type: ignore[arg-type]
 
 async def setup():
     log.info("setup()")
@@ -241,79 +288,98 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan, debug=False, title="Guess The Number - Docker Bot Farm")
 initFastAPI(app)
 
-BOT_REGISTRY = {
-    "smart_bot": BinarySearchBot()
-}
-
-@app.get("/bots/{bot_id}/info")
-def get_info(bot_id: str):
-    bot = BOT_REGISTRY.get(bot_id)
-    if not bot:
-        raise HTTPException(status_code=404, detail="Bot not found")
-
-    # Return the actual Python class name dynamically (e.g., "BinarySearchBot")
-    return {"class_name": type(bot).__name__}
-
-
-class PreparePayload(msgspec.Struct):
-    # min_val must be greater than or equal to 1
-    min_val: Annotated[int, msgspec.Meta(ge=1)]
-    max_val: int
-    # max_attempts must be greater than or equal to 1
-    max_attempts: Annotated[int, msgspec.Meta(ge=1)]
-
-    def __post_init__(self):
-        # Cross-field validation (business logic) remains here.
-        # We only check the relationship between max_val and min_val.
-        # Consistently raising msgspec's native validation exception
-        if self.max_val <= self.min_val:
-            # Consistently raising msgspec's native validation exception
-            raise msgspec.ValidationError(
-                f"max_val ({self.max_val}) must be greater than min_val ({self.min_val})"
-            )
-
-@app.post("/bots/{bot_id}/prepare")
-async def prepare_bot(bot_id: str, request: Request):
-    bot = BOT_REGISTRY.get(bot_id)
-    if not bot:
-        raise HTTPException(status_code=404, detail="Bot not found")
-
-    body = await request.body()
-    payload = msgspec.json.decode(body, type=PreparePayload)
-
-    try:
-        # We try to get the method reference first.
-        # This prevents masking an AttributeError that might happen INSIDE the method.
-        prepare_func = bot.prepare_to_play
-    except AttributeError:
-        # Fallback: the method doesn't exist on this bot instance, do nothing
-        pass
-    else:
-        # The method exists, now we can safely call it
-        prepare_func(
-            min_val=payload.min_val,
-            max_val=payload.max_val,
-            max_attempts=payload.max_attempts
-        )
-
-    return {"status": "ready"}
-
-@app.post("/bots/{bot_id}/make_guess")
-def make_guess(
-    bot_id: str,
-    # embed=True allows sending {"attempt": 1} without defining a Pydantic model
-    attempt: int = Body(..., embed=True)
-):
-    bot = BOT_REGISTRY.get(bot_id)
-    if not bot:
-        raise HTTPException(status_code=404, detail="Bot not found")
-
-    guess = bot.make_your_guess(attempt)
-    return {"guess": guess}
-
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+BOT_A_REGISTRY = {
+    "smart_bot": BinarySearchBot()
+}
+
+BOT_B_REGISTRY = {
+    "smart_bot": SmartGesserBot()
+}
+
+@app.get("/bots/a/{bot_id}/info")
+def get_a_info(bot_id: str):
+    log.info("get_a_info()", bot_id=bot_id)
+
+    bot = BOT_A_REGISTRY.get(bot_id, None)
+    if not bot:
+        raise HTTPException(status_code=404, detail=f"Bot A {bot_id} not found")
+
+    ret = bot_a_identification_info(bot)
+    return ret
+
+@app.get("/bots/b/{bot_id}/info")
+def get_b_info(bot_id: str):
+    log.info("get_b_info()", bot_id=bot_id)
+
+    bot = BOT_B_REGISTRY.get(bot_id, None)
+    if not bot:
+        raise HTTPException(status_code=404, detail=f"Bot B {bot_id} not found")
+
+    ret =  bot_b_identification_info(bot)
+    return ret
+
+
+# class BasePayload(msgspec.Struct):
+#     # min_val must be greater than or equal to 1
+#     min_val: Annotated[int, msgspec.Meta(ge=1)]
+#     max_val: int
+#     # max_attempts must be greater than or equal to 1
+#     max_attempts: Annotated[int, msgspec.Meta(ge=1)]
+#
+#     def __post_init__(self):
+#         # Cross-field validation (business logic) remains here.
+#         # We only check the relationship between max_val and min_val.
+#         # Consistently raising msgspec's native validation exception
+#         if self.max_val <= self.min_val:
+#             # Consistently raising msgspec's native validation exception
+#             raise msgspec.ValidationError(
+#                 f"max_val ({self.max_val}) must be greater than min_val ({self.min_val})"
+#             )
+
+
+class BotAOnFinishedPayload(msgspec.Struct):
+    is_win: bool
+    reason: str
+
+
+@app.post("/bots/a/{bot_id}/on_finished")
+async def on_finished_a_bot(bot_id: str, request: Request):
+    log.info("on_finished_a_bot()", bot_id=bot_id)
+
+    bot = BOT_A_REGISTRY.get(bot_id, None)
+    if not bot:
+        raise HTTPException(status_code=404, detail=f"Bot A {bot_id} not found")
+
+    body = await request.body()
+    payload = msgspec.json.decode(body, type=BotAOnFinishedPayload)
+
+    ret = bot_a_on_finished(payload.is_win, payload.reason)
+    return ret
+
+class BotBOnFinishedPayload(msgspec.Struct):
+    max_attempts: int
+    attempts: int
+    is_win: bool
+    reason: str
+
+@app.post("/bots/b/{bot_id}/on_finished")
+async def on_finished_b_bot(bot_id: str, request: Request):
+    log.info("on_finished_b_bot()", bot_id=bot_id)
+
+    bot = BOT_B_REGISTRY.get(bot_id, None)
+    if not bot:
+        raise HTTPException(status_code=404, detail=f"Bot B {bot_id} not found")
+
+    body = await request.body()
+    payload = msgspec.json.decode(body, type=BotBOnFinishedPayload)
+
+    ret = bot_b_on_finished(payload.max_attempts, payload.attempts,payload.is_win,payload.reason)
+    return ret
+
 
 
 

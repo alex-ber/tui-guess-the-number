@@ -8,7 +8,7 @@ requires-python = ">=3.14.6"
 dependencies =[
     "python-dotenv>=1.2.2",
     "pyyaml==6.0.1",
-    "alex-ber-utils>=0.15.2",
+    "alex-ber-utils>=0.15.3",
     "fastapi>=0.141.1",
     "structlog>=26.1.0, <27.0.0",
     "uvicorn[standard]>=0.52.1",
