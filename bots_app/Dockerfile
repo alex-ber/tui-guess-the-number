@@ -93,6 +93,7 @@ CMD ["uv", "run", "python", "-m", "tui-guess-the-number-bots.main"]
 #docker push alexberkovich/tui-guess-the-number-bots:latest
 
 
+##docker system prune --all
 # Delete all containers
 # docker rm -f $(docker ps -a -q)
 

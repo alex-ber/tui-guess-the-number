@@ -17,7 +17,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 import msgspec
-from typing import Annotated, Any
+from typing import Annotated, Any, NewType
 
 from .players import BinarySearchBot, SmartGesserBot, bot_a_identification_info, bot_b_identification_info, bot_a_on_finished, bot_b_on_finished
 
@@ -321,6 +321,50 @@ def get_b_info(bot_id: str):
 
     ret =  bot_b_identification_info(bot)
     return ret
+
+
+# LegacyBool = NewType("LegacyBool", bool)
+# LegacyDateTime = NewType("LegacyDateTime", datetime.datetime)
+#
+#
+#
+# def alexber_dec_hook(type_: type, obj: Any) -> Any:
+#     # 1. If we expect a custom Bool or DateTime — trust parse_str
+#     if type_ is LegacyBool or type_ is LegacyDateTime:
+#         return parse_str(obj)
+#
+#     # # if we have some case that should be covered another way that parse_str() do
+#     # # I'm using str_to_bool() just for demonstration purposes
+#     # if type_ is LegacyBool:
+#     #     # If the client sent a native bool, return it as is
+#     #     if isinstance(obj, bool):
+#     #         return obj
+#     #     # Otherwise parse with your function (handles "yes", "on", "1")
+#     #     return str_to_bool(str(obj))
+#
+#
+#     # 2. If the field is Any
+#     elif type_ is Any:
+#         if isinstance(obj, str):
+#             # If it's a string — try to find hidden types inside (dates, bool)
+#             return parse_str(obj)
+#         else:
+#             # If it's already a native int, float, list, dict, bool — just pass it through
+#             return obj
+#
+#     # 3. Fallback for unexpected types that we forgot to handle
+#     raise TypeError(f"Type {type_} not supported by hook")
+#
+#
+# class MyPayload(msgspec.Struct):
+#     id: int
+#     is_active: LegacyBool      # msgspec will call the hook!
+#     created_at: LegacyDateTime # msgspec will call the hook!
+#     price: decimal.Decimal     # msgspec will parse it internally at the C level! (No Any needed)
+#     extra_payload: Any  # Here Any — is the only way!
+#
+# payload = msgspec.json.decode(body, type=MyPayload, dec_hook=any_dec_hook)
+#
 
 
 # class BasePayload(msgspec.Struct):

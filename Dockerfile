@@ -100,6 +100,7 @@ CMD ["--min", "1", "--max", "1023", "--player-a", "human", "--player-b", "human"
 #docker push alexberkovich/tui-guess-the-number:latest
 
 
+##docker system prune --all
 # Delete all containers
 # docker rm -f $(docker ps -a -q)
 
