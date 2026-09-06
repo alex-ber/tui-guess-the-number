@@ -34,6 +34,7 @@ import structlog
 import typer
 from typer import Typer
 from typing import Annotated
+import uuid
 from structlog.contextvars import clear_contextvars
 from .logging_setup import initConf as structLogInitConf
 from .engine import Engine
@@ -73,7 +74,8 @@ def run_game(
     try:
         log.info("run_game()")
         runner: Engine = Engine(ctx)
-        runner.play_loop(min_val, max_val, player_a, player_b)
+        game_id: str = str(uuid.uuid7())
+        runner.play_loop(game_id, min_val, max_val, player_a, player_b)
 
     finally:
         clear_contextvars()

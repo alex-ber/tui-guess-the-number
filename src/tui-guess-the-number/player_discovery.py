@@ -11,7 +11,7 @@ class PlayerA(Protocol):
     Contract for PlayerA: picks a random number.
     """
 
-    def is_guess_number(self, min_val:int, max_val:int, max_attempts: int, number:int) -> GuessFeedback:
+    def is_guess_number(self, game_id: str, min_val:int, max_val:int, max_attempts: int, attempt:int, number:int) -> GuessFeedback:
         """Does number you've picked is the passed number? If no, does it too low or to high?"""
         ...
 
@@ -19,7 +19,7 @@ class PlayerA(Protocol):
         """Return your real class/id name"""
         ...
 
-    def on_finished(self, min_val:int, max_val:int, max_attempts: int, attempts:int, is_win:bool, reason:str) -> str|None:
+    def on_finished(self, game_id: str, min_val:int, max_val:int, max_attempts: int, attempt:int, is_win:bool, reason:str) -> str|None:
         """The result of the game. How many attempts were made, did you win or lose? What the reason."""
         ...
 
@@ -30,7 +30,7 @@ class PlayerB(Protocol):
     Contract for PlayerB: guess the number.
     """
 
-    def make_your_guess(self, min_val:int, max_val:int, max_attempts: int, attempt:int) -> int:
+    def make_your_guess(self, game_id: str, min_val:int, max_val:int, max_attempts: int, attempt:int) -> int:
         """Make your guess. This is current attempt number"""
         ...
 
@@ -38,7 +38,7 @@ class PlayerB(Protocol):
         """Return your real class/id name"""
         ...
 
-    def on_finished(self, min_val:int, max_val:int, max_attempts: int, attempts:int, is_win:bool, reason:str) -> str|None:
+    def on_finished(self, game_id: str, min_val:int, max_val:int, max_attempts: int, attempt:int, is_win:bool, reason:str) -> str|None:
         """The result of the game. How many attempts were made, did you win or lose? What the reason."""
         ...
 

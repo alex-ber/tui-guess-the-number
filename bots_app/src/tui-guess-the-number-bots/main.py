@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import structlog
+import math
 
 from structlog.contextvars import clear_contextvars, bind_contextvars
 from alexber.utils.structlog_setup import initConf as structLogInitConf
@@ -19,7 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import msgspec
 from typing import Annotated, Any, NewType
 
-from .players import BinarySearchBot, SmartGesserBot, bot_a_identification_info, bot_b_identification_info, bot_a_on_finished, bot_b_on_finished
+from .players import BinarySearchBot, SmartGuesserBot, FairGuesserBot, bot_a_on_finished, bot_b_on_finished
 
 def _configure_logging():
     cwd = Path.cwd()
@@ -293,11 +294,12 @@ async def health_check():
     return {"status": "healthy"}
 
 BOT_A_REGISTRY = {
-    "smart_bot": BinarySearchBot()
+    "smart_bot": SmartGuesserBot(),
+    "fair_bot": FairGuesserBot()
 }
 
 BOT_B_REGISTRY = {
-    "smart_bot": SmartGesserBot()
+    "smart_bot": BinarySearchBot()
 }
 
 @app.get("/bots/a/{bot_id}/info")
@@ -308,7 +310,7 @@ def get_a_info(bot_id: str):
     if not bot:
         raise HTTPException(status_code=404, detail=f"Bot A {bot_id} not found")
 
-    ret = bot_a_identification_info(bot)
+    ret = bot.get_identification_info()
     return ret
 
 @app.get("/bots/b/{bot_id}/info")
@@ -319,7 +321,7 @@ def get_b_info(bot_id: str):
     if not bot:
         raise HTTPException(status_code=404, detail=f"Bot B {bot_id} not found")
 
-    ret =  bot_b_identification_info(bot)
+    ret =  bot.get_identification_info()
     return ret
 
 
@@ -424,6 +426,40 @@ async def on_finished_b_bot(bot_id: str, request: Request):
     ret = bot_b_on_finished(payload.max_attempts, payload.attempts,payload.is_win,payload.reason)
     return ret
 
+class BotAIsGuessNumberPayload(msgspec.Struct):
+    game_id: str
+    min_val: Annotated[int, msgspec.Meta(ge=1)]
+    max_val: int
+    attempt: Annotated[int, msgspec.Meta(ge=1)]
+    number: int
+
+    def __post_init__(self):
+        # Cross-field validation (business logic) remains here.
+
+        if self.max_val <= self.min_val:
+            raise msgspec.ValidationError(
+                f"max_val ({self.max_val}) must be strictly greater than min_val ({self.min_val})"
+            )
+
+
+
+@app.post("/bots/a/{bot_id}/is_guess_number")
+async def is_guess_number_a_bot(bot_id: str, request: Request):
+    log.info("is_guess_number_a_bot()", bot_id=bot_id)
+
+    bot = BOT_A_REGISTRY.get(bot_id, None)
+    if not bot:
+        raise HTTPException(status_code=404, detail=f"Bot A {bot_id} not found")
+
+    body = await request.body()
+    payload = msgspec.json.decode(body, type=BotAIsGuessNumberPayload)
+
+    bind_contextvars(
+        bot_id=bot_id,
+        game_id=payload.game_id, min_val=payload.min_val, max_val=payload.max_val, attempt=payload.attempt, number=payload.number)
+
+    ret = bot.is_guess_number(payload.game_id, payload.min_val, payload.max_val, payload.attempt, payload.number)
+    return ret
 
 
 

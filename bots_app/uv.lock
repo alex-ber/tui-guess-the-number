@@ -4,11 +4,11 @@ requires-python = ">=3.14.6"
 
 [[package]]
 name = "alex-ber-utils"
-version = "0.15.3"
+version = "0.15.4"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a5/0e/65f12de29cb67f8ab4dcc1830ae79e7c2ef6f9011742b4403be8f31bf097/alex_ber_utils-0.15.3.tar.gz", hash = "sha256:05b5e427ccb70292b5d36a8889e440f82524a761eeda9b684e067546d5657b7f", size = 158778, upload-time = "2026-09-02T10:55:20.513Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/31/88/273cfeb862e8d35010cc7a7fbeb4ef6f53af452e615de798bbaed53db065/alex_ber_utils-0.15.4.tar.gz", hash = "sha256:8069821bcd04c6f8cf1c67054f60bc230599f528fd267edcee55d274b8d3b0d8", size = 159944, upload-time = "2026-09-06T07:55:57.293Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/05/07/402d336af4308bd4b50ff8af1e0c337c86dc9a17fdbe3282140b020dc00c/alex_ber_utils-0.15.3-py3-none-any.whl", hash = "sha256:177dac6333cec6e97299e3dd658097e3967f567051bce472b8bef91e40d01d0a", size = 95791, upload-time = "2026-09-02T10:55:18.681Z" },
+    { url = "https://files.pythonhosted.org/packages/4e/18/8704bfccc27ec57970cb87c7b81a1b0a1173a26ebf49970158926b1c6f83/alex_ber_utils-0.15.4-py3-none-any.whl", hash = "sha256:516e3753e382d96ee2aed9fcb64b746ad13466fc031d6147dfa4f06d5c9433ed", size = 96175, upload-time = "2026-09-06T07:55:55.541Z" },
 ]
 
 [[package]]
@@ -291,7 +291,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "alex-ber-utils", specifier = ">=0.15.3" },
+    { name = "alex-ber-utils", specifier = ">=0.15.4" },
     { name = "fastapi", specifier = ">=0.141.1" },
     { name = "msgspec", specifier = ">=0.21.1" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
